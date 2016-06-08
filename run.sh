@@ -13,15 +13,15 @@ echo '#!/bin/bash' > /run_cron.sh && chmod a+x /run_cron.sh
 echo 'export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$PATH' >> /run_cron.sh
 echo 'echo "cron job run at $(date)"' >> /run_cron.sh
 if [ ! -z "${HEARTBEAT_URL}" ]; then
-    echo "curl ${HEARTBEAT_URL}" >> /run_cron.sh
+    echo "curl ${HEARTBEAT_URL} && echo" >> /run_cron.sh
 fi
 if [ ! -z "${REPO_URL}" ] && [ -d '/repo_root' ]; then
     echo 'cd /repo_root && git pull -r && chown -R nginx.nginx /repo_root' >> /run_cron.sh
 fi
 if [ ! -z "${CRON_RUN_TIME}" ]; then
-    echo "${CRON_RUN_TIME} /run_cron.sh" | crontab
+    echo "${CRON_RUN_TIME} /run_cron.sh 2>&1 > /proc/1/fd/1" | crontab
 else
-    echo '0 * * * * /run_cron.sh' | crontab
+    echo '0 * * * * /run_cron.sh 2>&1 > /proc/1/fd/1' | crontab
 fi
 crontab -l
 echo -e "# run_cron.sh: \n$(cat /run_cron.sh)"
