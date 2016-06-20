@@ -42,9 +42,9 @@ if [ ! -z "${REPO_URL}" ] && [ -d '/repo_root' ]; then
     echo 'cd /repo_root && git pull -r && chown -R nginx.nginx /repo_root' >> /run_cron.sh
 fi
 if [ ! -z "${CRON_RUN_TIME}" ]; then
-    echo "${CRON_RUN_TIME} /run_cron.sh 2>&1 | tee -a /proc/1/fd/1 | tee -a ${REAL_WWW_ROOT}/cronlog.txt" | crontab
+    echo "${CRON_RUN_TIME} /run_cron.sh | tee -a /proc/1/fd/1 | tee -a ${REAL_WWW_ROOT}/cronlog.txt" | crontab
 else
-    echo '0 * * * * /run_cron.sh 2>&1 | tee -a /proc/1/fd/1 | tee -a ${REAL_WWW_ROOT}/cronlog.txt' | crontab
+    echo '0 * * * * /run_cron.sh | tee -a /proc/1/fd/1 | tee -a ${REAL_WWW_ROOT}/cronlog.txt' | crontab
 fi
 crontab -l
 echo -e "# run_cron.sh: \n$(cat /run_cron.sh)"
