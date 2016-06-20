@@ -28,12 +28,13 @@ if [ ! -z "${REAL_WWW_ROOT}" ]; then
         chown nginx.nginx "${REAL_WWW_ROOT}/index.html"
     fi
 fi
+echo "# REAL_WWW_ROOT='${REAL_WWW_ROOT}'"
 
 echo "#### add cron job. HEARTBEAT_URL='${HEARTBEAT_URL}', CRON_RUN_TIME='${CRON_RUN_TIME}' ####"
 crond -P -s
 echo '#!/bin/bash' > /run_cron.sh && chmod a+x /run_cron.sh
 echo 'export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:$PATH' >> /run_cron.sh
-echo 'echo "cron job run at $(date), remote time: $(date -d "$(curl -s http://www.timeapi.org/utc/now?format=%25a%20%25b%20%25d%20%25I:%25M:%25S%20%25Z%20%25Y)")"' >> /run_cron.sh
+echo 'echo "cron job run at $(date), remote time: $(date -d "$(curl http://www.timeapi.org/utc/now?format=%25a%20%25b%20%25d%20%25I:%25M:%25S%20%25Z%20%25Y 2>/dev/null)")"' >> /run_cron.sh
 if [ ! -z "${HEARTBEAT_URL}" ]; then
     echo "curl ${HEARTBEAT_URL} && echo" >> /run_cron.sh
 fi
@@ -41,9 +42,9 @@ if [ ! -z "${REPO_URL}" ] && [ -d '/repo_root' ]; then
     echo 'cd /repo_root && git pull -r && chown -R nginx.nginx /repo_root' >> /run_cron.sh
 fi
 if [ ! -z "${CRON_RUN_TIME}" ]; then
-    echo "${CRON_RUN_TIME} /run_cron.sh 2>&1 | tee /proc/1/fd/1 | tee ${REAL_WWW_ROOT}/cron.log" | crontab
+    echo "${CRON_RUN_TIME} /run_cron.sh 2>&1 | tee -a /proc/1/fd/1 | tee -a ${REAL_WWW_ROOT}/cronlog.txt" | crontab
 else
-    echo '0 * * * * /run_cron.sh 2>&1 | tee /proc/1/fd/1 | tee ${REAL_WWW_ROOT}/cron.log' | crontab
+    echo '0 * * * * /run_cron.sh 2>&1 | tee -a /proc/1/fd/1 | tee -a ${REAL_WWW_ROOT}/cronlog.txt' | crontab
 fi
 crontab -l
 echo -e "# run_cron.sh: \n$(cat /run_cron.sh)"
